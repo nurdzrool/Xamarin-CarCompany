@@ -16,7 +16,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Views\CarColorPage.xaml.cs">
       <DependentUpon>CarColorPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)ViewModels\ResultsViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)App.xaml" />

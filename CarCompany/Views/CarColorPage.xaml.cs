@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Collections.ObjectModel;
+
 using Xamarin.Forms;
 
 namespace CarCompany
@@ -8,17 +10,9 @@ namespace CarCompany
 	// TODO : mmiller : localize strings
 	public partial class CarColorPage : ContentPage
 	{ 
-
         #region ViewModels
-        ResultsViewModel viewModel;
+
         #endregion
-
-		#region UI Components
-
-		// ListView
-		private ListView listViewOutput;
-
-		#endregion
 
 		#region Private Constants
 
@@ -70,7 +64,7 @@ namespace CarCompany
 		private bool isChangesMade = false;
 
 		// List
-		private List<Result> results = new List<Result>();
+		private ObservableCollection<Result> results = new ObservableCollection<Result>();
 
 		#endregion
 
@@ -80,12 +74,18 @@ namespace CarCompany
 		{
             InitializeComponent();
 
-            BindingContext = viewModel = new ResultsViewModel();
+            //BindingContext = viewModel = new ResultsViewModel();
             
 			Title = "Car Color Calculator";
 
             pickStartDay.ItemsSource = days;
             pickStartDay.SelectedIndex = 0;
+
+
+            var initialString = formatResultLabelString(days[pickStartDay.SelectedIndex], colorNames[pickStartDay.SelectedIndex], colors[pickStartDay.SelectedIndex], false);
+            results.Add(new Result() { colorString=initialString, daysAddedString="Intial Day Set to Monday"});
+
+            resultsListView.ItemsSource = results;
         }
 
 		#endregion
@@ -154,6 +154,7 @@ namespace CarCompany
 				//TableRow row = LayoutInflater.Inflate(Resource.Layout.OneRow, table, true);
 				results.Add(new Result() { colorString = str, daysAddedString = $"Days added = {totalDays}" });
 
+                //resultsListView.reloadData();
 
 				// for testing
 				Console.WriteLine("==========================");

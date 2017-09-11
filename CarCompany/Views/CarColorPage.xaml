@@ -19,7 +19,7 @@
                 Text="Add Days"
                 Clicked="AddDays_Clicked"/>
             <ListView 
-                x:Name="ResultsListView" 
+                x:Name="resultsListView" 
                 ItemsSource="{Binding results}" 
                 VerticalOptions="FillAndExpand" 
                 HasUnevenRows="true" 
@@ -30,7 +30,7 @@
                         <ViewCell>
                             <StackLayout Padding="10">
                                 <Label Text="{Binding daysAddedString}" LineBreakMode="NoWrap"/>
-                                <Label Text="{Binding colorString}" LineBreakMode="NoWrap" />
+                                <Label FormattedText="{Binding colorString}" LineBreakMode="NoWrap" />
                             </StackLayout>
                         </ViewCell>
                     </DataTemplate>
