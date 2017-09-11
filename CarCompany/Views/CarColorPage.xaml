@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" x:Class="CarCompany.CarColorPage" Title="{Binding Title}" x:Name="CarColorPage">
+    <ContentPage.Content>
+        <StackLayout>
+            <Picker 
+                x:Name="pickStartDay" 
+                Title="Select A Day"
+                SelectedIndex="{Binding selectedStartDay}" 
+                HorizontalOptions="FillAndExpand" 
+                ItemsSource="{Binding days}"/>
+            <Entry 
+                x:Name="textDaysToAdd"
+                Placeholder="Number of Days To Add"
+                Keyboard="Numeric"
+                Completed="txtAddDays_Completed"
+                TextChanged="txtAddDays_TextChanged"/>
+            <Button
+                x:Name="btnAddDays"
+                Text="Add Days"
+                Clicked="AddDays_Clicked"/>
+            <ListView 
+                x:Name="ResultsListView" 
+                ItemsSource="{Binding results}" 
+                VerticalOptions="FillAndExpand" 
+                HasUnevenRows="true" 
+                IsPullToRefreshEnabled="false" 
+                CachingStrategy="RecycleElement">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <ViewCell>
+                            <StackLayout Padding="10">
+                                <Label Text="{Binding daysAddedString}" LineBreakMode="NoWrap"/>
+                                <Label Text="{Binding colorString}" LineBreakMode="NoWrap" />
+                            </StackLayout>
+                        </ViewCell>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>
