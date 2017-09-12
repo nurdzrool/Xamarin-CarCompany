@@ -10,10 +10,6 @@ namespace CarCompany
 	// TODO : mmiller : localize strings
 	public partial class CarColorPage : ContentPage
 	{ 
-        #region ViewModels
-
-        #endregion
-
 		#region Private Constants
 
 		// TODO : mmiller : merge color/colorName into single object
@@ -59,12 +55,13 @@ namespace CarCompany
 		private int holidays = 0;
 		private int weekendDays = 2;
 		private int daysToAdd = 0;
+        private int totalDays = 0;
 
 		//  Bool 
 		private bool isChangesMade = false;
 
 		// List
-		private ObservableCollection<Result> results = new ObservableCollection<Result>();
+		private ObservableCollection<Result> results;
 
 		#endregion
 
@@ -80,12 +77,12 @@ namespace CarCompany
 
             pickStartDay.ItemsSource = days;
             pickStartDay.SelectedIndex = 0;
+            pickStartDay.IsEnabled = false;
 
-
-            var initialString = formatResultLabelString(days[pickStartDay.SelectedIndex], colorNames[pickStartDay.SelectedIndex], colors[pickStartDay.SelectedIndex], false);
-            results.Add(new Result() { colorString=initialString, daysAddedString="Intial Day Set to Monday"});
+            Reset_Clicked();
 
             resultsListView.ItemsSource = results;
+            textDaysToAdd.Focus();
         }
 
 		#endregion
@@ -102,6 +99,7 @@ namespace CarCompany
 			var text = ((Entry)sender).Text; //cast sender to access the properties of the Entry
 
 			// TODO : mmiller : can we assume daysToAdd <= int32 max
+            // TODO : mmiller : add result for bad input
 			Int32 output;
 
 			if (Int32.TryParse(text, out output))
@@ -125,65 +123,108 @@ namespace CarCompany
 		{
 			// Prevents unneeded calls but insures that the number is up to day
 			// Even if the keyboard is still open
-
 			if (isChangesMade)
 			{
 				((IEntryController)textDaysToAdd).SendCompleted();
 				Console.WriteLine($"Days to Add : {daysToAdd}");
 			}
-
-			var startIndex = (pickStartDay.SelectedIndex);
-			var moveNum = (daysToAdd % 7);
-
-			var totalDays = startIndex + daysToAdd;
+			
+			totalDays = totalDays + daysToAdd;
 
 			// TODO : mmiller : verify this will not produce decimal
-			var daysToSkip = holidays;
+			var daysToSkip = 0;
 
-			if (totalDays >= 7)
+            // TODO : mmiller : refactor for starting at different days
+            if (totalDays >= 7)
 			{
-				daysToSkip += weekendDays * (totalDays / 7);
+                daysToSkip += -1*((weekendDays * (totalDays / 7)) + holidays);
 			}
+            
+            var index = totalDays % 7;
 
-			var finalIndex = startIndex + moveNum - daysToSkip;
+            if(index < 0){
+                index += 7;
+            }
 
-			if (totalDays != 0 && (moveNum == 5 || moveNum == 6))
+            var moveNum = (daysToAdd % 7);
+
+            if (index == 5 || index == 6)
 			{
-				var str = formatResultLabelString(days[totalDays % 7], "No Color", Color.Black, true);
+				var str = formatResultLabelString(days[index], "No Color", Color.Black, true);
 
-				//TableRow row = LayoutInflater.Inflate(Resource.Layout.OneRow, table, true);
-				results.Add(new Result() { colorString = str, daysAddedString = $"Days added = {totalDays}" });
+				var dayString = $"{daysToAdd} Days Added to Original Monday";
 
-                //resultsListView.reloadData();
+                addAndScrollTo(new Result() { colorString = str, daysAddedString = dayString });
 
 				// for testing
 				Console.WriteLine("==========================");
-				Console.WriteLine($"Day : {days[totalDays % 7]}");
+				Console.WriteLine($"Day : {days[index]}");
 				Console.WriteLine($"Color : No Color");
 				Console.WriteLine("==========================");
 			}
 			else
 			{
-				if (finalIndex < 0)
+                // Positive totalDays
+                var colorIndex = (totalDays + daysToSkip) % 7;
+
+				if (colorIndex < 0)
 				{
-					finalIndex += colors.Count;
+					colorIndex += colors.Count;
 				}
 
-				var str = formatResultLabelString(days[totalDays % 7], colorNames[finalIndex], colors[finalIndex], false);
+                // Negative totalDays
+                if(totalDays < 0) 
+                {
+                    colorIndex = (totalDays - daysToSkip) % 7;
 
-				results.Add(new Result() { colorString = str, daysAddedString = $"Days added = {totalDays}" });
+					if (colorIndex < 0)
+					{
+						colorIndex += colors.Count;
+					}
+                }
+
+				var str = formatResultLabelString(days[index], colorNames[colorIndex], colors[colorIndex], false);
+
+                var dayString = $"{daysToAdd} Days Added to Original Monday";
+
+                addAndScrollTo(new Result() { colorString = str, daysAddedString = dayString});
 				// for testing
 				Console.WriteLine("==========================");
-				Console.WriteLine($"Day : {days[totalDays % 7]}");
-				Console.WriteLine($"Color : {colorNames[finalIndex]}");
+				Console.WriteLine($"Day : {days[index]}");
+				Console.WriteLine($"Color : {colorNames[colorIndex]}");
 				Console.WriteLine("==========================");
 			}
+            totalDays = 0;
 		}
+
+        void Reset_Clicked(object sender, EventArgs e)
+        {
+            Reset_Clicked();
+        }
+
+        void Reset_Clicked() 
+        {
+			totalDays = 0;
+			pickStartDay.SelectedIndex = totalDays % 7;
+
+            var initialString = formatResultLabelString(days[pickStartDay.SelectedIndex], colorNames[pickStartDay.SelectedIndex], colors[pickStartDay.SelectedIndex], false);
+            if (results != null) {
+                results.Clear();
+            }
+            else {
+                results = new ObservableCollection<Result>();
+            }
+            results.Add(new Result() { colorString=initialString, daysAddedString="Intial Day Set to Monday"});
+
+            textDaysToAdd.Text = "";
+            textDaysToAdd.Focus();
+        }
+
 		#endregion
 
-		#region Helper Functions
+        #region Helper Functions
 
-		private FormattedString formatResultLabelString(String day, String colorName, Color color, bool isWeekend)
+        private FormattedString formatResultLabelString(String day, String colorName, Color color, bool isWeekend)
 		{
 			var fs = new FormattedString();
 			if (isWeekend)
@@ -198,7 +239,13 @@ namespace CarCompany
 
 			return fs;
 		}
+
+        private void addAndScrollTo(Result result)
+        {
+            results.Add(result);
+            resultsListView.ScrollTo(results, ScrollToPosition.End, true);
+        }
+
 		#endregion
 	}
 }
-

@@ -18,6 +18,10 @@
                 x:Name="btnAddDays"
                 Text="Add Days"
                 Clicked="AddDays_Clicked"/>
+            <Button
+                x:Name="btnReset"
+                Text="Reset"
+                Clicked="Reset_Clicked"/>
             <ListView 
                 x:Name="resultsListView" 
                 ItemsSource="{Binding results}" 
