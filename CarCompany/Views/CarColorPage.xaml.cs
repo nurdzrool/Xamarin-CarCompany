@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 using Xamarin.Forms;
 
 using CarCompany.Models;
-using System.Linq;
+using CarCompany.Constants;
+using CarCompany.Utility;
 
 namespace CarCompany
 {
@@ -100,71 +102,20 @@ namespace CarCompany
 			// TODO : mmiller : can we assume daysToAdd <= int32 max
             // TODO : mmiller : add result for bad input
 			Int16 output;
+            Result result;
 
-			if (Int16.TryParse(text, out output))
-			{
-				Console.WriteLine($"Parse success : {output}");
-				daysToAdd = output;
-
-				if (daysToAdd < 0)
-				{
-					daysToAdd = 0;
-
-					var fs = new FormattedString();
-					fs.Spans.Add(new Span() { Text = "Please enter a positive whole number." });
-					var dayString = "Must Be a Future Day";
-
-					addAndScrollTo(new Result() { title = dayString, description = fs });
-
-					isError = true;
-				}
-			}
-			else
-			{
-                Int64 bigInt;
-                Int32 mediumInt;
-
-				if (Int64.TryParse(text, out bigInt))
-				{
-					Console.WriteLine("Number Too Big");
-					daysToAdd = 0;
-
-					var fs = new FormattedString();
-					fs.Spans.Add(new Span() { Text = "Number must be less than 32,768" });
-					var dayString = "Number Too Big";
-
-					addAndScrollTo(new Result() { title = dayString, description = fs });
-
-					isError = true;
-				}
-				else if(Int32.TryParse(text, out mediumInt))
-				{
-					Console.WriteLine("Number Too Big");
-					daysToAdd = 0;
-
-					var fs = new FormattedString();
-					fs.Spans.Add(new Span() { Text = "Number must be less than 32,768" });
-					var dayString = "Number Too Big";
-
-					addAndScrollTo(new Result() { title = dayString, description = fs });
-
-					isError = true;
-				}
-                else 
-                {
-					Console.WriteLine("NAN: resetting to 0");
-					daysToAdd = 0;
-
-					var fs = new FormattedString();
-					fs.Spans.Add(new Span() { Text = "Please enter a positive whole number." });
-					var dayString = "Error";
-
-					addAndScrollTo(new Result() { title = dayString, description = fs });
-
-					isError = true;   
-                }
-			}
-			isChangesMade = false;
+            if (ErrorChecker.isValidDaysAddedInput(text, out output, out result))
+            {
+                daysToAdd = output;
+                isChangesMade = false;
+            }
+            else if (result != null)
+            {
+                daysToAdd = output;
+                addAndScrollTo(result);
+                isError = true;
+            }
+            // TODO : mmiller : default error?
 		}
 
 		#endregion
@@ -178,13 +129,13 @@ namespace CarCompany
 			if (isChangesMade)
 			{
 				((IEntryController)textDaysToAdd).SendCompleted();
-				Console.WriteLine($"Days to Add : {daysToAdd}");
 			}
 
             if(isError)
             {
                 // Skip once
                 isError = false;
+                textDaysToAdd.Text = String.Empty;
             }
             else 
             {
@@ -199,11 +150,10 @@ namespace CarCompany
 
 				if (index == SaturdayIndex || index == SundayIndex)
 				{
-					var str = formatResultLabelString(days[index], "No Color", Color.Black, true);
-
 					var dayString = $"{daysToAdd} Days Added to Original Monday";
 
-					addAndScrollTo(new Result() { title = dayString, description = str });
+					addAndScrollTo(new Result() { title = dayString, 
+                        description = StringConstant.Formatter.formatWeekendResultLabelString(days[index], Color.Black)});
 				}
 				else
 				{
@@ -224,7 +174,7 @@ namespace CarCompany
 						colorIndex += colors.Count;
 					}
 
-                    var str = formatResultLabelString(days[index], colors[colorIndex].name, colors[colorIndex].content, false);
+                    var str = StringConstant.Formatter.formatWeekdayResultLabelString(days[index], colors[colorIndex]);
 
 					var dayString = $"{daysToAdd} Days Added to Original Monday";
 
@@ -245,7 +195,6 @@ namespace CarCompany
 			totalDays = 0;
 			pickStartDay.SelectedIndex = 0;
 
-            var initialString = formatResultLabelString(days[pickStartDay.SelectedIndex], colors[pickStartDay.SelectedIndex].name, colors[pickStartDay.SelectedIndex].content, false);
             if (results != null) 
             {
                 results.Clear();
@@ -255,35 +204,18 @@ namespace CarCompany
                 results = new ObservableCollection<Result>();
             }
 
-            results.Add(new Result() { title = "Intial Day Set to Monday", description = initialString });
+            results.Add(new Result() { title = StringConstant.intialDay,
+				description = StringConstant.Formatter.formatWeekdayResultLabelString(days[pickStartDay.SelectedIndex],
+																						colors[pickStartDay.SelectedIndex]) });
 
-            textDaysToAdd.Text = "";
+            textDaysToAdd.Text = String.Empty;
             textDaysToAdd.Focus();
         }
 
         #endregion
 
-        #region Calculation
-
-        #endregion
 
         #region Helper Functions
-
-        private FormattedString formatResultLabelString(String day, String colorName, Color color, bool isWeekend)
-		{
-			var fs = new FormattedString();
-			if (isWeekend)
-			{
-				fs.Spans.Add(new Span() { Text = $"No cars produced on this {day}" });
-			}
-			else
-			{
-				fs.Spans.Add(new Span { Text = $"Cars on this {day} will be : ", ForegroundColor = Color.Black });
-				fs.Spans.Add(new Span { Text = colorName, ForegroundColor = color });
-			}
-
-			return fs;
-		}
 
         private void addAndScrollTo(Result result)
         {
