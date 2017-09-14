@@ -16,6 +16,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Views\CarColorPage.xaml.cs">
       <DependentUpon>CarColorPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)Utility\DayCalculator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utility\ErrorChecker.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\ColorObj.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)App.xaml" />
@@ -27,5 +30,6 @@
     <Folder Include="$(MSBuildThisFileDirectory)Models\" />
     <Folder Include="$(MSBuildThisFileDirectory)Services\" />
     <Folder Include="$(MSBuildThisFileDirectory)ViewModels\" />
+    <Folder Include="$(MSBuildThisFileDirectory)Utility\" />
   </ItemGroup>
 </Project>

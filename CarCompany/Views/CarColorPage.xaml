@@ -36,8 +36,8 @@
                     <DataTemplate>
                         <ViewCell>
                             <StackLayout Padding="10">
-                                <Label Text="{Binding daysAddedString}" LineBreakMode="NoWrap"/>
-                                <Label FormattedText="{Binding colorString}" LineBreakMode="NoWrap" />
+                                <Label Text="{Binding title}" LineBreakMode="NoWrap"/>
+                                <Label FormattedText="{Binding description}" LineBreakMode="NoWrap" />
                             </StackLayout>
                         </ViewCell>
                     </DataTemplate>

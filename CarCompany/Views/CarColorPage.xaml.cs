@@ -5,38 +5,26 @@ using System.Collections.ObjectModel;
 
 using Xamarin.Forms;
 
+using CarCompany.Models;
+
 namespace CarCompany
 {
-	// TODO : mmiller : localize strings
-	public partial class CarColorPage : ContentPage
-	{ 
-		#region Private Constants
+    // TODO : mmiller : localize strings
+    public partial class CarColorPage : ContentPage
+    {
+        #region Private Constants
 
-		// TODO : mmiller : merge color/colorName into single object
-        // TODO : mmiller : make constant?
-		private List<Color> colors = new List<Color>()
-		{
-			Color.Red,
-			Color.Orange,
-			Color.Yellow,
-			Color.Green,
-			Color.Blue,
-			Color.Purple,
-			Color.Black
-		};
+        private readonly List<ColorObj> colors = new List<ColorObj>() {
+            new ColorObj() { content = Color.Red, name = "Red" },
+            new ColorObj() { content = Color.Orange, name = "Orange" },
+            new ColorObj() { content = Color.Yellow, name = "Yellow" },
+            new ColorObj() { content = Color.Green, name = "Green" },
+            new ColorObj() { content = Color.Blue, name = "Blue" },
+            new ColorObj() { content = Color.Purple, name = "Purple" },
+            new ColorObj() { content = Color.Black, name = "Black" }
+        };
 
-		private List<String> colorNames = new List<String>()
-		{
-			"Red",
-			"Orange",
-			"Yellow",
-			"Green",
-			"Blue",
-			"Purple",
-			"Black"
-		};
-
-        private List<String> days = new List<String>
+        private readonly List<String> days = new List<String>
         {
             "Monday",
             "Tuesday",
@@ -47,13 +35,16 @@ namespace CarCompany
             "Sunday"               
         };
 
+        private const int daysInWeek = 7;
+        private const int weekendDays = 2;
+
 		#endregion
 
 		#region Private Global Variables
 
 		// Int
 		private int holidays = 0;
-		private int weekendDays = 2;
+
 		private int daysToAdd = 0;
         private int totalDays = 0;
 
@@ -74,13 +65,19 @@ namespace CarCompany
             
 			Title = "Car Color Calculator";
 
+            // Set picker data source, and default index 
+            // future version may allow changing start day
             pickStartDay.ItemsSource = days;
             pickStartDay.SelectedIndex = 0;
             pickStartDay.IsEnabled = false;
 
+            // use reset to initialize variables
             Reset_Clicked();
 
+            // Set tableview data to the results array
             resultsListView.ItemsSource = results;
+
+            // Open Keyboard
             textDaysToAdd.Focus();
         }
 
@@ -114,7 +111,7 @@ namespace CarCompany
 					fs.Spans.Add(new Span() { Text = "Please enter a positive whole number." });
 					var dayString = "Must Be a Future Day";
 
-					addAndScrollTo(new Result() { colorString = fs, daysAddedString = dayString });
+					addAndScrollTo(new Result() { title = dayString, description = fs });
 
 					isError = true;
 				}
@@ -133,7 +130,7 @@ namespace CarCompany
 					fs.Spans.Add(new Span() { Text = "Number must be less than 32,768" });
 					var dayString = "Number Too Big";
 
-					addAndScrollTo(new Result() { colorString = fs, daysAddedString = dayString });
+					addAndScrollTo(new Result() { title = dayString, description = fs });
 
 					isError = true;
 				}
@@ -146,7 +143,7 @@ namespace CarCompany
 					fs.Spans.Add(new Span() { Text = "Number must be less than 32,768" });
 					var dayString = "Number Too Big";
 
-					addAndScrollTo(new Result() { colorString = fs, daysAddedString = dayString });
+					addAndScrollTo(new Result() { title = dayString, description = fs });
 
 					isError = true;
 				}
@@ -159,7 +156,7 @@ namespace CarCompany
 					fs.Spans.Add(new Span() { Text = "Please enter a positive whole number." });
 					var dayString = "Error";
 
-					addAndScrollTo(new Result() { colorString = fs, daysAddedString = dayString });
+					addAndScrollTo(new Result() { title = dayString, description = fs });
 
 					isError = true;   
                 }
@@ -190,15 +187,6 @@ namespace CarCompany
             {
 				totalDays = totalDays + daysToAdd;
 
-				// TODO : mmiller : verify this will not produce decimal
-				var daysToSkip = 0;
-
-				// TODO : mmiller : refactor for starting at different days
-				if (totalDays >= 7)
-				{
-					daysToSkip += -1 * ((weekendDays * (totalDays / 7)) + holidays);
-				}
-
 				var index = totalDays % 7;
 
 				if (index < 0)
@@ -206,15 +194,13 @@ namespace CarCompany
 					index += 7;
 				}
 
-				var moveNum = (daysToAdd % 7);
-
 				if (index == 5 || index == 6)
 				{
 					var str = formatResultLabelString(days[index], "No Color", Color.Black, true);
 
 					var dayString = $"{daysToAdd} Days Added to Original Monday";
 
-					addAndScrollTo(new Result() { colorString = str, daysAddedString = dayString });
+					addAndScrollTo(new Result() { title = dayString, description = str });
 
 					// for testing
 					Console.WriteLine("==========================");
@@ -224,35 +210,29 @@ namespace CarCompany
 				}
 				else
 				{
+					// TODO : mmiller : verify this will not produce decimal
+					var daysToSkip = 0;
+
+					// TODO : mmiller : refactor for starting at different days
+					if (totalDays >= 7)
+					{
+						daysToSkip += ((weekendDays * (totalDays / 7)) + holidays);
+					}
+
 					// Positive totalDays
-					var colorIndex = (totalDays + daysToSkip) % 7;
+					var colorIndex = (totalDays - daysToSkip) % 7;
 
 					if (colorIndex < 0)
 					{
 						colorIndex += colors.Count;
 					}
 
-					// Negative totalDays
-					if (totalDays < 0)
-					{
-						colorIndex = (totalDays - daysToSkip) % 7;
-
-						if (colorIndex < 0)
-						{
-							colorIndex += colors.Count;
-						}
-					}
-
-					var str = formatResultLabelString(days[index], colorNames[colorIndex], colors[colorIndex], false);
+                    var str = formatResultLabelString(days[index], colors[colorIndex].name, colors[colorIndex].content, false);
 
 					var dayString = $"{daysToAdd} Days Added to Original Monday";
 
-					addAndScrollTo(new Result() { colorString = str, daysAddedString = dayString });
-					// for testing
-					Console.WriteLine("==========================");
-					Console.WriteLine($"Day : {days[index]}");
-					Console.WriteLine($"Color : {colorNames[colorIndex]}");
-					Console.WriteLine("==========================");
+					addAndScrollTo(new Result() { title = dayString, description = str });
+
 				}
 				totalDays = 0;
             }
@@ -268,7 +248,7 @@ namespace CarCompany
 			totalDays = 0;
 			pickStartDay.SelectedIndex = totalDays % 7;
 
-            var initialString = formatResultLabelString(days[pickStartDay.SelectedIndex], colorNames[pickStartDay.SelectedIndex], colors[pickStartDay.SelectedIndex], false);
+            var initialString = formatResultLabelString(days[pickStartDay.SelectedIndex], colors[pickStartDay.SelectedIndex].name, colors[pickStartDay.SelectedIndex].content, false);
             if (results != null) 
             {
                 results.Clear();
@@ -278,13 +258,17 @@ namespace CarCompany
                 results = new ObservableCollection<Result>();
             }
 
-            results.Add(new Result() { colorString=initialString, daysAddedString="Intial Day Set to Monday"});
+            results.Add(new Result() { title = "Intial Day Set to Monday", description = initialString });
 
             textDaysToAdd.Text = "";
             textDaysToAdd.Focus();
         }
 
-		#endregion
+        #endregion
+
+        #region Calculation
+
+        #endregion
 
         #region Helper Functions
 

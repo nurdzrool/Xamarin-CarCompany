@@ -6,7 +6,7 @@ namespace CarCompany
 {
     public class Result
     {
-        public String daysAddedString { get; set; }
-        public FormattedString colorString { get; set; }
+        public String title { get; set; }
+        public FormattedString description { get; set; }
     }
 }
