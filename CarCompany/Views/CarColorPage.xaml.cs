@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using Xamarin.Forms;
 
 using CarCompany.Models;
+using System.Linq;
 
 namespace CarCompany
 {
@@ -37,6 +38,8 @@ namespace CarCompany
 
         private const int daysInWeek = 7;
         private const int weekendDays = 2;
+        private const int SaturdayIndex = 5;
+        private const int SundayIndex = 6;
 
 		#endregion
 
@@ -187,26 +190,20 @@ namespace CarCompany
             {
 				totalDays = totalDays + daysToAdd;
 
-				var index = totalDays % 7;
+                var index = totalDays % daysInWeek;
 
 				if (index < 0)
 				{
-					index += 7;
+                    index += daysInWeek;
 				}
 
-				if (index == 5 || index == 6)
+				if (index == SaturdayIndex || index == SundayIndex)
 				{
 					var str = formatResultLabelString(days[index], "No Color", Color.Black, true);
 
 					var dayString = $"{daysToAdd} Days Added to Original Monday";
 
 					addAndScrollTo(new Result() { title = dayString, description = str });
-
-					// for testing
-					Console.WriteLine("==========================");
-					Console.WriteLine($"Day : {days[index]}");
-					Console.WriteLine($"Color : No Color");
-					Console.WriteLine("==========================");
 				}
 				else
 				{
@@ -214,13 +211,13 @@ namespace CarCompany
 					var daysToSkip = 0;
 
 					// TODO : mmiller : refactor for starting at different days
-					if (totalDays >= 7)
+                    if (totalDays >= daysInWeek)
 					{
-						daysToSkip += ((weekendDays * (totalDays / 7)) + holidays);
+						daysToSkip += ((weekendDays * (totalDays / daysInWeek)) + holidays);
 					}
 
 					// Positive totalDays
-					var colorIndex = (totalDays - daysToSkip) % 7;
+					var colorIndex = (totalDays - daysToSkip) % daysInWeek;
 
 					if (colorIndex < 0)
 					{
@@ -246,7 +243,7 @@ namespace CarCompany
         void Reset_Clicked() 
         {
 			totalDays = 0;
-			pickStartDay.SelectedIndex = totalDays % 7;
+			pickStartDay.SelectedIndex = 0;
 
             var initialString = formatResultLabelString(days[pickStartDay.SelectedIndex], colors[pickStartDay.SelectedIndex].name, colors[pickStartDay.SelectedIndex].content, false);
             if (results != null) 
@@ -291,7 +288,7 @@ namespace CarCompany
         private void addAndScrollTo(Result result)
         {
             results.Add(result);
-            resultsListView.ScrollTo(results, ScrollToPosition.End, true);
+            resultsListView.ScrollTo(results.Last(), ScrollToPosition.End, true);
         }
 
 		#endregion
