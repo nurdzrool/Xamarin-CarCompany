@@ -15,8 +15,8 @@
                 x:Name="textDaysToAdd"
                 Placeholder="Number of Days To Add"
                 Keyboard="Numeric"
-                Completed="txtAddDays_Completed"
-                TextChanged="txtAddDays_TextChanged"/>
+                Completed="textAddDays_Completed"
+                TextChanged="textAddDays_TextChanged"/>
             <Button
                 x:Name="btnAddDays"
                 Text="Add Days"

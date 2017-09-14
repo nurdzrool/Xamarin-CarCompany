@@ -16,7 +16,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Views\CarColorPage.xaml.cs">
       <DependentUpon>CarColorPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)Utility\DayCalculator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utility\ErrorChecker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Models\ColorObj.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Constants\StringConstant.cs" />

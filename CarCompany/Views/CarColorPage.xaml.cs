@@ -35,40 +35,40 @@ namespace CarCompany
             "Thursday",
             "Friday",
             "Saturday",
-            "Sunday"               
+            "Sunday"
         };
 
-        private const int daysInWeek = 7;
-        private const int weekendDays = 2;
-        private const int SaturdayIndex = 5;
-        private const int SundayIndex = 6;
+        private const byte daysInWeek = 7;
+        private const byte weekendDays = 2;
+        private const byte SaturdayIndex = 5;
+        private const byte SundayIndex = 6;
 
-		#endregion
+        #endregion
 
-		#region Private Global Variables
+        #region Private Global Variables
 
-		// Int
-		private int holidays = 0;
+        // Int
+        private Int16 holidays = 0;
 
-		private int daysToAdd = 0;
-        private int totalDays = 0;
+        private Int16 daysToAdd = 0;
+        private Int16 totalDays = 0;
 
-		//  Bool 
-		private bool isChangesMade = false;
+        //  Bool 
+        private bool isChangesMade = false;
         private bool isError = false;
 
-		// List
-		private ObservableCollection<Result> results;
+        // List
+        private ObservableCollection<Result> results;
 
-		#endregion
+        #endregion
 
-		#region Constructors
+        #region Constructors
 
-		public CarColorPage()
-		{
+        public CarColorPage()
+        {
             InitializeComponent();
-            
-			Title = "Car Color Calculator";
+
+            Title = "Car Color Calculator";
 
             // Set picker data source, and default index 
             // future version may allow changing start day
@@ -86,127 +86,85 @@ namespace CarCompany
             textDaysToAdd.Focus();
         }
 
-		#endregion
+        #endregion
 
-		#region Event Handlers - Entry
+        #region Event Handlers - Entry
 
-		void txtAddDays_TextChanged(object sender, TextChangedEventArgs e)
-		{
-			isChangesMade = true;
-		}
+        // detect changes made to the textAddDays field
+        void textAddDays_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            isChangesMade = true;
+        }
 
-		void txtAddDays_Completed(object sender, EventArgs e)
-		{
-			var text = ((Entry)sender).Text; //cast sender to access the properties of the Entry
+        // textAddDays losses focus
+        void textAddDays_Completed(object sender, EventArgs e)
+        {
+            var text = ((Entry)sender).Text; 
+            updateDaysToAdd(text);
+            AddDays_Clicked(btnAddDays, null);
+        }
 
-			// TODO : mmiller : can we assume daysToAdd <= int32 max
-            // TODO : mmiller : add result for bad input
-			Int16 output;
-            Result result;
+        #endregion
 
-            if (ErrorChecker.isValidDaysAddedInput(text, out output, out result))
+        #region Event Handlers - Button
+
+        // TODO : mmiller : disable select click
+        // TODO : mmiller : dismissing keyboard doesn't proc?
+        void AddDays_Clicked(object sender, EventArgs e)
+        {
+            // Removes the chance of updating twice but also 
+            // prevents a missed call if keyboard does not dismiss properly
+            if (isChangesMade)
             {
-                daysToAdd = output;
-                isChangesMade = false;
+                updateDaysToAdd(textDaysToAdd.Text);
             }
-            else if (result != null)
-            {
-                daysToAdd = output;
-                addAndScrollTo(result);
-                isError = true;
-            }
-            // TODO : mmiller : default error?
-		}
-
-		#endregion
-
-		#region Event Handlers - Button
-
-		void AddDays_Clicked(object sender, EventArgs e)
-		{
-			// Prevents unneeded calls but insures that the number is up to day
-			// Even if the keyboard is still open
-			if (isChangesMade)
-			{
-				((IEntryController)textDaysToAdd).SendCompleted();
-			}
-
-            if(isError)
+            //updateDaysToAdd(text, true);
+            if (isError)
             {
                 // Skip once
                 isError = false;
                 textDaysToAdd.Text = String.Empty;
             }
-            else 
+            else
             {
-				totalDays = totalDays + daysToAdd;
+                totalDays = (Int16)(totalDays + daysToAdd);
 
-                var index = totalDays % daysInWeek;
+                updateDisplay();
 
-				if (index < 0)
-				{
-                    index += daysInWeek;
-				}
+                Console.WriteLine($"color_of_the_day({totalDays})-> ‘{color_of_the_day(totalDays)}’");
 
-				if (index == SaturdayIndex || index == SundayIndex)
-				{
-					var dayString = $"{daysToAdd} Days Added to Original Monday";
-
-					addAndScrollTo(new Result() { title = dayString, 
-                        description = StringConstant.Formatter.formatWeekendResultLabelString(days[index], Color.Black)});
-				}
-				else
-				{
-					// TODO : mmiller : verify this will not produce decimal
-					var daysToSkip = 0;
-
-					// TODO : mmiller : refactor for starting at different days
-                    if (totalDays >= daysInWeek)
-					{
-						daysToSkip += ((weekendDays * (totalDays / daysInWeek)) + holidays);
-					}
-
-					// Positive totalDays
-					var colorIndex = (totalDays - daysToSkip) % daysInWeek;
-
-					if (colorIndex < 0)
-					{
-						colorIndex += colors.Count;
-					}
-
-                    var str = StringConstant.Formatter.formatWeekdayResultLabelString(days[index], colors[colorIndex]);
-
-					var dayString = $"{daysToAdd} Days Added to Original Monday";
-
-					addAndScrollTo(new Result() { title = dayString, description = str });
-
-				}
-				totalDays = 0;
+                // reset total days 
+                // TODO : mmiller : when we have persistant days added, have conditional
+                totalDays = 0;
             }
-		}
+        }
 
         void Reset_Clicked(object sender, EventArgs e)
         {
             Reset_Clicked();
         }
 
-        void Reset_Clicked() 
+        void Reset_Clicked()
         {
-			totalDays = 0;
-			pickStartDay.SelectedIndex = 0;
+            totalDays = 0;
+            isChangesMade = true;
+            pickStartDay.SelectedIndex = 0;
 
-            if (results != null) 
+            if (results != null)
             {
                 results.Clear();
             }
-            else 
+            else
             {
                 results = new ObservableCollection<Result>();
             }
 
-            results.Add(new Result() { title = StringConstant.intialDay,
-				description = StringConstant.Formatter.formatWeekdayResultLabelString(days[pickStartDay.SelectedIndex],
-																						colors[pickStartDay.SelectedIndex]) });
+            results.Add(new Result()
+            {
+                title = StringConstant.intialDay,
+                description = StringConstant.Formatter.formatWeekdayResultLabelString(days[pickStartDay.SelectedIndex],
+                                                                                        colors[pickStartDay.SelectedIndex])
+            });
 
             textDaysToAdd.Text = String.Empty;
             textDaysToAdd.Focus();
@@ -223,6 +181,109 @@ namespace CarCompany
             resultsListView.ScrollTo(results.Last(), ScrollToPosition.End, true);
         }
 
-		#endregion
-	}
+        #endregion
+
+        #region Calculation
+
+        private void updateDaysToAdd(String text)
+        {
+            isChangesMade = false;
+			// TODO : mmiller : can we assume daysToAdd <= int32 max
+			Int16 output;
+			Result result;
+
+			if (ErrorChecker.isValidDaysAddedInput(text, out output, out result))
+			{
+				daysToAdd = output;
+			}
+			else if (result != null)
+			{
+				daysToAdd = output;
+				addAndScrollTo(result);
+				isError = true;
+                isChangesMade = true;
+			}
+
+			// TODO : mmiller : default error?
+		}
+
+		private void updateDisplay()
+		{
+			byte index = (byte)(totalDays % daysInWeek);
+
+			if (index == SaturdayIndex || index == SundayIndex)
+			{
+				var dayString = $"{daysToAdd} Days Added to Original Monday";
+
+				addAndScrollTo(new Result()
+				{
+					title = dayString,
+					description = StringConstant.Formatter.formatWeekendResultLabelString(days[index], Color.Black)
+				});
+			}
+			else
+			{
+				Int16 daysToSkip = 0;
+
+				// TODO : mmiller : refactor for starting at different days
+				if (totalDays >= daysInWeek)
+				{
+					daysToSkip += (Int16)((weekendDays * (totalDays / daysInWeek)) + holidays);
+				}
+
+				byte colorIndex = (byte)((totalDays - daysToSkip) % daysInWeek);
+
+				// Should never happen as daysToSkip should always be less than totalDays
+				// daysTooSkip = (totalDays * (2/7)
+				// Doesn't hurt to check
+				if (colorIndex < 0)
+				{
+					colorIndex += (byte)colors.Count;
+				}
+
+				addAndScrollTo(new Result()
+				{
+					title = $"{daysToAdd} Days Added to Original Monday",
+					description = StringConstant.Formatter.formatWeekdayResultLabelString(days[index], colors[colorIndex])
+				});
+			}
+		}
+
+        // Condensed version to fill the original requirement of the project statement statement
+        // Not using currently because i am doing more in the conditionals above
+        private String color_of_the_day(Int16 daysInTheFuture)
+        {
+			byte index = (byte)(daysInTheFuture % daysInWeek);
+			
+            if (index == SaturdayIndex || index == SundayIndex)
+            {
+                return "No Color";
+            }
+            else
+            {
+                Int16 daysToSkip = 0;
+                Int16 numberOfWeeks = (Int16)(totalDays / daysInWeek);
+
+                if (totalDays >= daysInWeek)
+                {
+                    daysToSkip += (Int16)((weekendDays * numberOfWeeks) + holidays);
+                }
+
+                byte colorIndex = (byte)((totalDays - daysToSkip) % daysInWeek);
+
+                // Should never happen as daysToSkip should always be less than totalDays
+                // daysTooSkip = (totalDays * (2/7)
+                // Doesn't hurt to check
+                // Will be useful in the future when looking up past days
+                if (colorIndex < 0)
+                {
+                    colorIndex += (byte)colors.Count;
+                }
+
+                return colors[colorIndex].name;
+            }
+        }
+
+        #endregion
+    }
 }
